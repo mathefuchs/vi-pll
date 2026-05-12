@@ -16,7 +16,7 @@ def run_experiment(algo_name: str, dataset_name: str) -> None:
         "yahoo-news",
     ):
         subprocess.run([
-            "./venv/bin/python", "vi_run_rl.py",
+            "./.venv/bin/python", "vi_run_rl.py",
             algo_name, dataset_name,
         ], check=False)
 
@@ -26,7 +26,7 @@ def run_experiment(algo_name: str, dataset_name: str) -> None:
         "cifar10", "cifar100",
     ):
         subprocess.run([
-            "./venv/bin/python", "vi_run_sup.py",
+            "./.venv/bin/python", "vi_run_sup.py",
             algo_name, dataset_name,
         ], check=False)
 
