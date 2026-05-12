@@ -17,11 +17,18 @@ from partial_label_learning.data import get_rl_dataset
 from partial_label_learning.pll_classifier_base import PllBaseClassifier
 
 
-def run_experiment(algo_name: str, dataset_name: str) -> None:
+def run_experiment(
+    algo_name: str, dataset_name: str,
+    param_l: float | None = None, param_p: float | None = None,
+) -> None:
     """ Run single experiment """
 
     # Check if experiment already completed
-    if os.path.exists(f"./results/{dataset_name}_{algo_name}.csv"):
+    if param_l is None or param_p is None:
+        fname = f"./results/{dataset_name}_{algo_name}.csv"
+    else:
+        fname = f"./results/{dataset_name}_{algo_name}_l{param_l:.3f}_p{param_p:.3f}.csv"
+    if os.path.exists(fname):
         return
 
     # Get algorithm to use
@@ -51,7 +58,10 @@ def run_experiment(algo_name: str, dataset_name: str) -> None:
         "msrc-v2": (25.0, 2.0),
         "yahoo-news": (60.0, 0.0),
     }
-    lmbd, prior = params[dataset_name]
+    if param_l is None or param_p is None:
+        lmbd, prior = params[dataset_name]
+    else:
+        lmbd, prior = param_l, param_p
     dataset = get_rl_dataset(dataset_name)
     x_full = dataset.x_full
     y_full = dataset.y_full
@@ -72,9 +82,7 @@ def run_experiment(algo_name: str, dataset_name: str) -> None:
     torch.manual_seed(42)
 
     # Run 5-fold cross validation
-    with open(
-        f"./results/{dataset_name}_{algo_name}.csv", "w", encoding="utf-8",
-    ) as res_file:
+    with open(fname, "w", encoding="utf-8") as res_file:
         for i, (train_idx, test_idx) in skf_splits:
             x_train = x_full[train_idx]
             y_train = y_full[train_idx]
@@ -112,13 +120,15 @@ def run_experiment(algo_name: str, dataset_name: str) -> None:
 def main() -> None:
     """ Main """
 
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         print("Expected input: python vi_run_rl.py <algo> <dataset>")
         return
 
     algo_name_str = str(sys.argv[1]).strip()
     dataset_name_str = str(sys.argv[2]).strip()
-    run_experiment(algo_name_str, dataset_name_str)
+    param_l = None if len(sys.argv) != 5 else float(sys.argv[3])
+    param_p = None if len(sys.argv) != 5 else float(sys.argv[4])
+    run_experiment(algo_name_str, dataset_name_str, param_l, param_p)
 
 
 if __name__ == "__main__":
